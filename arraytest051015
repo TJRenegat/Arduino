@@ -1,0 +1,20 @@
+#include <Adafruit_MotorShield.h>
+#include <lenlib.h>
+#include <Servo.h>
+#include <Wire.h>
+
+int Sec[] = {3, 2, 1};
+int Count = 3;
+
+void setup() {
+    Serial.begin(9600);
+}
+
+
+void loop() {
+  for (int SecArr = 0; SecArr < Count; SecArr++) {
+    Serial.println("POO ");Serial.print(Sec[SecArr]);
+    Serial.println("\n");
+    delay(15);
+  }
+}
