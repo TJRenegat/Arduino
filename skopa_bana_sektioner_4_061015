@@ -1,0 +1,99 @@
+  #include <Adafruit_MotorShield.h>
+#include <lenlib.h>
+#include <Servo.h>
+#include <Wire.h>
+
+const int SerL = 50;       //Servo vinkel låg
+const int SerH = 200;      //Servo vinkel hög
+const int BlB = 480;       //Blå boll
+const int RoB = 200;       //Röd boll
+const int TopS = 100;      //Topphastighet
+const int LowS = 0;        //Lägst hastighet
+const int RevH = 100;      //Back Hög
+const int RevL = 50;       //Back Låg
+
+int IR = 0;
+int V = 0;
+int H = 0;
+int C = 0;
+int F = 0;
+int Sec = 0;
+
+mySensors Sen;
+myMotors Mot;
+
+int Car_Motor_Basic() {  //Linjeföljning
+  if(V == 0 and C == 1 and H == 0) {
+    Mot.runMotor(1, FORWARD, TopS);
+    Mot.runMotor(2, FORWARD, TopS);
+  }
+  else if(V == 1 and H == 0) {
+    Mot.runMotor(1, BACKWARD, RevL);
+    Mot.runMotor(2, FORWARD, RevH);
+  }
+  else if(V == 0 and H == 1) {
+    Mot.runMotor(1, FORWARD, RevH);
+    Mot.runMotor(2, BACKWARD, RevL);
+  }
+  else {
+    Mot.runMotor(1, FORWARD, LowS);
+    Mot.runMotor(2, FORWARD, LowS);
+  }
+}
+
+int Monitor_Distance_Colour() { //Monitor
+  IR = Sen.readIR0();
+  V = Sen.readReflect0();
+  C = Sen.readReflect1();
+  H = Sen.readReflect2();
+  F = Sen.readReflect3();
+  Serial.print("Vanster  ");Serial.print(V);
+  Serial.print("\tCenter  ");Serial.print(C);
+  Serial.print("\tHoger  ");Serial.print(H);
+  Serial.print("\tIR_Sensor  ");Serial.print(IR);
+  Serial.print("\tColour  ");Serial.print(F);
+  Serial.print("\tSection ");Serial.print(Sec);
+  Serial.print("\n");
+}
+
+void setup() {
+  Sen.beginSensors();
+  Mot.beginMotors();
+  Serial.begin(9600);
+  Mot.angleServo(175);
+}
+
+void loop() {
+  if(Sec == 0) {
+    if(V == 1 && C == 1 && H == 1) {
+      Sec = 1;
+      Serial.println("\tSEC1.1  ");    
+    Serial.println("\tSEC1  ");
+    Car_Motor_Basic();
+    Monitor_Distance_Colour();
+    }
+  }
+  else if(Sec == 1) {
+    if(V == 0 && C == 0 && H == 0) {
+      Mot.runMotor(1, FORWARD, TopS);
+      Mot.runMotor(2, FORWARD, TopS);
+    }
+    Serial.println("\tSEC2  ");
+    Car_Motor_Basic();
+    Monitor_Distance_Colour();
+  }
+  else if(Sec == 2) {
+    if(F > (BlB - 20) && F < (BlB + 20)) {
+      Serial.println("\tSEC3.3  ");
+      Car_Motor_Basic();
+      Monitor_Distance_Colour();
+    }
+    Serial.println("\tSEC3  ");
+    Car_Motor_Basic();
+    Monitor_Distance_Colour();
+  }
+  else {
+    Mot.runMotor(1, FORWARD, LowS);
+    Mot.runMotor(2, FORWARD, LowS);
+  }
+}
